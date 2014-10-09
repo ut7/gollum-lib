@@ -22,3 +22,9 @@ def assert_html_equal(expected, actual, msg = nil)
     end
   end
 end
+
+def assert_max_seconds(max_seconds, name = "an operation")
+  start = Time.now
+  yield
+  assert (Time.now - start) < max_seconds, "#{name} took more than #{max_seconds} seconds"
+end
