@@ -170,27 +170,29 @@ context "Wiki page writing" do
     cd = commit_details
     @wiki.write_page("Gollum", :markdown, "# Gollum", cd)
     assert_equal 1, @wiki.repo.commits.size
-    assert_equal cd[:message], @wiki.repo.commits.first.message
-    assert_equal cd[:name], @wiki.repo.commits.first.author.name
-    assert_equal cd[:email], @wiki.repo.commits.first.author.email
+    assert_equal commit_details[:message], @wiki.repo.commits.first.message
+    assert_equal commit_details[:name], @wiki.repo.commits.first.author.name
+    assert_equal commit_details[:email], @wiki.repo.commits.first.author.email
 
-    cd2 = { :message => "Updating Bilbo", :author => "Samwise" }
+    cd2 = { :message => "Updating Bilbo", :name => "Samwise", :email => "sam@mordor.me" }
     @wiki.write_page("Bilbo", :markdown, "# Bilbo", cd2)
 
     commits      = @wiki.repo.commits
+
+    assert_equal 2, commits.size
+
     # FIXME Grit commits ordering is not predictable. See #13.
     # The following line should be: commit = commits.first
     first_commit = commits.find { |c| c.message == "Updating Bilbo" }
+    assert_equal "Updating Bilbo", first_commit.message
+    assert_equal "Samwise", first_commit.author.name
+    assert_equal "sam@mordor.me", first_commit.author.email
 
-    assert_equal 2, commits.size
-    assert_equal cd2[:message], first_commit.message
-    assert_equal cd2[:name], first_commit.author.name
-    assert_equal cd2[:email], first_commit.author.email
     assert @wiki.page("Bilbo")
     assert @wiki.page("Gollum")
   end
 
-  test "write page is not allowed to overwrite file" do
+  test "write_page is not allowed to overwrite file" do
     @wiki.write_page("Abc-Def", :markdown, "# Gollum", commit_details)
     assert_raises Gollum::DuplicatePageError do
       @wiki.write_page("ABC DEF", :textile, "# Gollum", commit_details)
